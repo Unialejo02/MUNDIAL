@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oráculo Mundial 2026 — Modelo predictivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pitch:#0A0F1C; --panel:#0F1729; --panel2:#152138; --line:#23324d;
+  --ink:#EAF1FB; --mut:#8195B4;
+  --amar:#FFCC1D; --azul:#4C8DFF; --verde:#34D399; --rojo:#FB6B6B; --gris:#9aa7bd;
+  --shadow:0 10px 40px rgba(0,0,0,.45);
+  --disp:'Oswald','Arial Narrow',system-ui,sans-serif;
+  --body:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'Space Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1200px 500px at 80% -10%, rgba(76,141,255,.10), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(255,204,29,.07), transparent 55%),
+    var(--pitch);
+  color:var(--ink); font-family:var(--body); line-height:1.5;
+  -webkit-font-smoothing:antialiased; min-height:100vh;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px 80px}
+
+/* Header */
+header{position:sticky;top:0;z-index:30;background:rgba(10,15,28,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.head-in{max-width:1080px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;margin-right:auto}
+.crest{width:38px;height:38px;border-radius:9px;background:linear-gradient(150deg,var(--amar),#ff9e1d);display:grid;place-items:center;color:#0A0F1C;font-family:var(--disp);font-weight:700;font-size:20px;box-shadow:var(--shadow)}
+.brand h1{font-family:var(--disp);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:19px;margin:0;line-height:1}
+.brand small{color:var(--mut);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono)}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+.tab{font-family:var(--disp);text-transform:uppercase;letter-spacing:.05em;font-size:14px;color:var(--mut);background:transparent;border:1px solid transparent;padding:8px 13px;border-radius:8px;cursor:pointer;transition:.15s}
+.tab:hover{color:var(--ink);background:var(--panel)}
+.tab.active{color:#0A0F1C;background:var(--amar);font-weight:600}
+
+section{display:none;padding-top:24px;animation:fade .25s ease}
+section.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+h2.sec{font-family:var(--disp);text-transform:uppercase;letter-spacing:.06em;font-size:22px;margin:0 0 4px;font-weight:600}
+.sub{color:var(--mut);font-size:13px;margin:0 0 20px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--amar)}
+
+.panel{background:linear-gradient(180deg,var(--panel),#0c1322);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+/* Selects / inputs */
+label.fl{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--mut);margin:0 0 6px;font-family:var(--mono)}
+select,input[type=number]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-family:var(--body);font-size:15px;outline:none}
+select:focus,input:focus{border-color:var(--azul);box-shadow:0 0 0 3px rgba(76,141,255,.18)}
+.row{display:flex;gap:10px;align-items:center}
+.vs-pill{font-family:var(--disp);color:var(--mut);font-size:13px;letter-spacing:.1em;padding:0 4px}
+.btn{font-family:var(--disp);text-transform:uppercase;letter-spacing:.06em;background:var(--azul);color:#fff;border:none;border-radius:9px;padding:11px 16px;font-size:14px;font-weight:500;cursor:pointer;transition:.15s}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.btn.amar{background:var(--amar);color:#0A0F1C;font-weight:600}
+.btn.sm{padding:7px 11px;font-size:12px}
+.switch{display:inline-flex;align-items:center;gap:8px;color:var(--mut);font-size:13px;cursor:pointer;user-select:none}
+.switch input{width:auto}
+
+/* Prediction scoreboard card (signature) */
+.board{background:radial-gradient(700px 240px at 50% -40%,rgba(76,141,255,.12),transparent),linear-gradient(180deg,#101a30,#0b1322);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.board-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.tname{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.tflag{font-size:40px;line-height:1}
+.tname b{font-family:var(--disp);font-size:18px;text-transform:uppercase;letter-spacing:.03em}
+.tname .elo{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.scoreline{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700}
+.scoreline .n{font-size:54px;line-height:1;color:var(--amar)}
+.scoreline .x{font-size:24px;color:var(--mut)}
+.score-cap{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-top:4px}
+
+.probbar{display:flex;height:34px;border-radius:9px;overflow:hidden;margin:18px 0 8px;border:1px solid var(--line)}
+.probbar div{display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:600;font-size:14px;color:#06101f;min-width:34px;transition:flex .4s}
+.seg-h{background:var(--verde)} .seg-d{background:var(--gris)} .seg-a{background:var(--azul)}
+.problabels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+
+.mkt{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.mcell{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.mcell .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.mcell .v{font-family:var(--disp);font-size:19px;margin-top:3px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.chip{font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:5px 9px;color:var(--ink)}
+.chip b{color:var(--amar)}
+
+/* Value */
+.value-wrap{margin-top:18px;border-top:1px dashed var(--line);padding-top:16px}
+.odds3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.odds3 .o{}
+.valgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.vbox{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.vbox .lab{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.vbox .fair{font-family:var(--disp);font-size:18px}
+.vbadge{display:inline-block;margin-top:5px;font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 7px;border-radius:6px}
+.vpos{background:rgba(52,211,153,.16);color:var(--verde);border:1px solid rgba(52,211,153,.4)}
+.vneg{background:rgba(251,107,107,.13);color:var(--rojo);border:1px solid rgba(251,107,107,.35)}
+
+/* Markets board */
+.markets{margin-top:18px;border-top:1px dashed var(--line);padding-top:8px}
+.mgroup{margin-top:14px}
+.mgroup h4{font-family:var(--disp);text-transform:uppercase;letter-spacing:.05em;font-size:14px;color:var(--amar);margin:0 0 6px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.mtbl{width:100%;border-collapse:collapse;font-size:13px}
+.mtbl td{padding:6px 5px;border-bottom:1px solid rgba(35,50,77,.4);vertical-align:middle}
+.mtbl tr:last-child td{border-bottom:none}
+.mtbl .mk{color:var(--ink);font-weight:500}
+.mtbl .pk{color:var(--mut);font-family:var(--mono);font-size:10.5px}
+.mtbl .pr{text-align:right;font-family:var(--disp);font-size:15px;color:var(--ink);white-space:nowrap}
+.mtbl .fo{text-align:right;font-family:var(--mono);font-size:11px;color:var(--azul);white-space:nowrap;padding-left:8px}
+.mbar{display:inline-block;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--azul),var(--amar));vertical-align:middle;margin-right:7px;opacity:.85}
+
+/* Calendar */
+.gtitle{display:flex;align-items:center;gap:10px;margin:22px 0 10px}
+.gtitle .gl{font-family:var(--disp);font-size:15px;letter-spacing:.1em;color:#0A0F1C;background:var(--amar);width:26px;height:26px;display:grid;place-items:center;border-radius:7px;font-weight:700}
+.gtitle h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.05em;margin:0;font-size:16px;color:var(--mut);font-weight:500}
+.fxt{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:11px 14px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.fxt:hover{border-color:var(--azul);background:var(--panel2)}
+.fxt.star{border-color:var(--amar);box-shadow:0 0 0 1px rgba(255,204,29,.25) inset}
+.fxt .md{font-family:var(--mono);font-size:10px;color:var(--mut);width:54px;flex:none;text-transform:uppercase;letter-spacing:.06em}
+.fxt .side{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+.fxt .side.away{justify-content:flex-end;text-align:right}
+.fxt .side .nm{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fxt .fg{font-size:20px;flex:none}
+.fxt .sc{font-family:var(--disp);font-weight:700;font-size:20px;min-width:62px;text-align:center;flex:none}
+.fxt .sc.pend{color:var(--mut);font-size:11px;font-family:var(--mono);font-weight:400;letter-spacing:.06em}
+.fxt .pp{font-family:var(--mono);font-size:10px;color:var(--azul);min-width:62px;text-align:center;flex:none}
+.tagseed{font-family:var(--mono);font-size:9px;color:var(--verde);border:1px solid rgba(52,211,153,.3);border-radius:5px;padding:1px 5px;letter-spacing:.05em}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:13px}
+.gtbl{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.gtbl table th{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);text-align:center;padding:9px 4px;border-bottom:1px solid var(--line)}
+.gtbl table td{padding:9px 4px;text-align:center;border-bottom:1px solid rgba(35,50,77,.5)}
+.gtbl table tr:last-child td{border-bottom:none}
+.gtbl table td.team{text-align:left;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+.gtbl table td.team .pos{font-family:var(--mono);color:var(--mut);width:14px}
+.qual td{background:rgba(52,211,153,.06)}
+.qual td:first-child{box-shadow:inset 3px 0 0 var(--verde)}
+.third td:first-child{box-shadow:inset 3px 0 0 var(--amar)}
+.pts{font-family:var(--disp);font-weight:700;font-size:16px;color:var(--amar)}
+
+/* Teams editor */
+.teamrow{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:8px 12px;margin-bottom:6px}
+.teamrow .fg{font-size:22px}
+.teamrow .nm{flex:1;font-weight:600;font-size:14px}
+.teamrow .gpill{font-family:var(--mono);font-size:10px;color:var(--mut);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+.teamrow input{width:90px;font-family:var(--mono);text-align:center;padding:7px}
+.teamrow .delta{font-family:var(--mono);font-size:11px;width:46px;text-align:right}
+
+.note{font-size:12px;color:var(--mut);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amar);border-radius:8px;padding:12px 14px;margin:14px 0}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--amar);color:#0A0F1C;font-family:var(--disp);font-weight:600;letter-spacing:.04em;padding:11px 18px;border-radius:10px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.25s;z-index:60;text-transform:uppercase;font-size:13px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.disclaim{font-size:11.5px;color:var(--mut);line-height:1.55}
+a{color:var(--azul)}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:8px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .n{font-family:var(--disp);font-size:26px;color:var(--amar);line-height:1}
+.kpi .l{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--mut);margin-top:4px}
+.modal-bg{position:fixed;inset:0;background:rgba(5,8,16,.7);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal-bg.show{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:440px;width:100%;padding:20px;box-shadow:var(--shadow)}
+.modal h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.05em;margin:0 0 14px;font-size:18px}
+.score-edit{display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0}
+.score-edit input{width:74px;font-family:var(--disp);font-size:28px;text-align:center;font-weight:700}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+</style>
+</head>
+<body>
+<header>
+  <div class="head-in">
+    <div class="brand">
+      <div class="crest">O</div>
+      <div>
+        <h1>Oráculo · Mundial 2026</h1>
+        <small>Modelo Poisson + Elo</small>
+      </div>
+    </div>
+    <nav id="nav">
+      <button class="tab active" data-t="pred">Predicciones</button>
+      <button class="tab" data-t="cal">Calendario</button>
+      <button class="tab" data-t="grp">Grupos</button>
+      <button class="tab" data-t="eq">Equipos</button>
+      <button class="tab" data-t="info">Acerca</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- PREDICCIONES -->
+  <section id="pred" class="active">
+    <span class="eyebrow">Simulador de cruces</span>
+    <h2 class="sec">Predicción de partido</h2>
+    <p class="sub">Elige dos selecciones (o usa un partido del calendario). El modelo calcula probabilidades 1·X·2, marcador más probable y valor frente a tus cuotas.</p>
+
+    <div class="panel">
+      <div class="grid2">
+        <div>
+          <label class="fl">Local</label>
+          <select id="selA"></select>
+        </div>
+        <div>
+          <label class="fl">Visitante</label>
+          <select id="selB"></select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px;flex-wrap:wrap;gap:16px">
+        <label class="switch"><input type="checkbox" id="homeAdv"> Ventaja de campo al local (+60 Elo)</label>
+        <button class="btn ghost sm" id="swapBtn">⇄ Invertir</button>
+      </div>
+    </div>
+
+    <div id="predCard" style="margin-top:18px"></div>
+
+    <div class="panel" style="margin-top:18px">
+      <span class="eyebrow">🇨🇴 Foco Colombia · Grupo K</span>
+      <div class="kgrid" id="colKpi"></div>
+      <p class="disclaim" style="margin-top:12px">Toca cualquier partido del Grupo K en <b>Calendario</b> para ver la predicción detallada. El gran duelo Colombia vs Portugal es la Jornada 3.</p>
+    </div>
+  </section>
+
+  <!-- CALENDARIO -->
+  <section id="cal">
+    <span class="eyebrow">104 partidos · fase de grupos</span>
+    <h2 class="sec">Calendario y resultados</h2>
+    <p class="sub">Resultados verificados ya cargados. Toca un partido para ingresar o editar el marcador: las tablas y los ratings se recalculan al instante.</p>
+    <div class="toolbar">
+      <select id="calFilter" style="max-width:220px"></select>
+      <span style="flex:1"></span>
+      <button class="btn ghost sm" id="resetBtn">Reiniciar a verificados</button>
+    </div>
+    <div id="calList"></div>
+  </section>
+
+  <!-- GRUPOS -->
+  <section id="grp">
+    <span class="eyebrow">Tablas en vivo</span>
+    <h2 class="sec">Posiciones por grupo</h2>
+    <p class="sub">Se calculan con los resultados cargados. Verde = clasifica directo (Top 2). Amarillo = mejor tercero (8 avanzan). Criterios: puntos, diferencia de gol, goles a favor.</p>
+    <div id="grpList"></div>
+    <h2 class="sec" style="margin-top:26px">Mejores terceros</h2>
+    <p class="sub">Los 8 mejores entre los 12 terceros lugares completan los dieciseisavos de final.</p>
+    <div class="gtbl" id="thirdsTbl"></div>
+  </section>
+
+  <!-- EQUIPOS -->
+  <section id="eq">
+    <span class="eyebrow">Fuerza de las selecciones</span>
+    <h2 class="sec">Ratings Elo</h2>
+    <p class="sub">Base verificada (worldfootballrankings.com, 23 jun 2026). El "Δ" muestra cuánto ha movido cada selección su Elo según los resultados del torneo. Puedes ajustar cualquier valor a mano.</p>
+    <div class="toolbar">
+      <button class="btn ghost sm" id="resetElo">Restaurar Elo base</button>
+      <span class="disclaim" style="flex:1">El motor usa el <b>Elo actual</b> (base + ajuste por resultados).</span>
+    </div>
+    <div id="eqList"></div>
+  </section>
+
+  <!-- INFO -->
+  <section id="info">
+    <span class="eyebrow">Cómo funciona</span>
+    <h2 class="sec">Acerca del modelo</h2>
+    <div class="panel">
+      <p style="margin-top:0"><b>Motor.</b> Para cada cruce convierto la diferencia de Elo en una expectativa de goles para cada equipo (supremacía) y aplico una distribución de <b>Poisson</b> (0 a 7 goles). De ahí salen las probabilidades de victoria local, empate y visita, el marcador más probable, los marcadores exactos más cargados, el "más/menos de 2.5" y "ambos marcan".</p>
+      <p><b>Actualización durante el torneo.</b> Cada vez que ingresas un resultado, recalculo el Elo de las dos selecciones con la fórmula Elo (importancia de Mundial + multiplicador por diferencia de goles). Los ratings evolucionan jornada a jornada, así que las predicciones se ajustan a la forma real del torneo. Todo queda guardado en tu navegador.</p>
+      <p><b>Valor de apuesta.</b> Comparo la probabilidad del modelo con la cuota de tu casa: <span class="mono">valor = prob × cuota − 1</span>. Si es positivo, el modelo dice que esa cuota paga más de lo que el riesgo justifica. También te muestro la <b>cuota justa</b> (1 / probabilidad) para comparar.</p>
+      <p><b>Mercados cubiertos.</b> Resultado 1X2, doble oportunidad, hándicap ±1.5, líneas de goles (más/menos de 1.5, 2.5, 3.5), ambos marcan, equipo que marca, portería a cero, marcador exacto, córners (total, por equipo y líneas) y tarjetas (total, por equipo, líneas y probabilidad de roja). Cada mercado muestra la probabilidad del modelo y su cuota justa.</p>
+      <p><b>Córners y tarjetas.</b> No salen del Elo como los goles. Los córners parten de un promedio real del torneo (<b>8.5 por partido</b> en el Mundial 2026) y se reparten según qué equipo domina territorialmente. Las tarjetas parten de ~4 amarillas por partido (media típica de Mundial) y suben en los partidos parejos, donde hay más tensión. Son mercados <b>más ruidosos</b> que los goles: úsalos como orientación, no como certeza.</p>
+      <div class="note">⚠️ Esto es una herramienta estadística e informativa, no una fórmula para ganar dinero. Ningún modelo le gana de forma fiable a las casas de apuestas: ellas cobran un margen y tienen más datos. Úsalo para entender el partido y como guía, nunca apuestes más de lo que puedas permitirte perder. Las predicciones no garantizan nada.</div>
+      <p class="disclaim"><b>Datos.</b> Ratings Elo verificados de worldfootballrankings.com (23 jun 2026); selecciones de menor ranking estimadas y editables. Resultados precargados verificados de fuentes deportivas (FIFA, EFE, medios) hasta el 22 jun 2026. Grupos y jornadas según el sorteo oficial FIFA. Para refrescar datos a una fecha posterior, pídemelo en el chat y regenero la app.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle">Ingresar marcador</h3>
+    <div id="modalBody"></div>
+    <div class="score-edit">
+      <div style="text-align:center"><div id="meFlagA" style="font-size:30px"></div><input type="number" id="meA" min="0" max="20" value="0"></div>
+      <span class="vs-pill">–</span>
+      <div style="text-align:center"><div id="meFlagB" style="font-size:30px"></div><input type="number" id="meB" min="0" max="20" value="0"></div>
+    </div>
+    <div id="modalPred" class="disclaim" style="text-align:center;margin-bottom:14px"></div>
+    <div class="row" style="gap:8px">
+      <button class="btn amar" id="meSave" style="flex:1">Guardar</button>
+      <button class="btn ghost" id="meClear">Borrar</button>
+      <button class="btn ghost" id="meCancel">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ---------- almacenamiento (funciona offline; degrada en sandbox) ---------- */
+const Store={mem:{},get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return this.mem[k]??null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}}};
+const KEY='oraculo2026_v1';
+
+/* ---------- datos: 48 selecciones (Elo base 23 jun 2026) ---------- */
+/* code, nombre, bandera, grupo, posición en grupo (0-3), elo base */
+const TEAMS=[
+ ["MEX","México","🇲🇽","A",0,1722],["RSA","Sudáfrica","🇿🇦","A",1,1445],["KOR","Corea del Sur","🇰🇷","A",2,1592],["CZE","Chequia","🇨🇿","A",3,1481],
+ ["CAN","Canadá","🇨🇦","B",0,1572],["BIH","Bosnia","🇧🇦","B",1,1470],["QAT","Catar","🇶🇦","B",2,1450],["SUI","Suiza","🇨🇭","B",3,1655],
+ ["BRA","Brasil","🇧🇷","C",0,1772],["MAR","Marruecos","🇲🇦","C",1,1770],["HAI","Haití","🇭🇹","C",2,1320],["SCO","Escocia","🏴","C",3,1504],
+ ["USA","Estados Unidos","🇺🇸","D",0,1710],["PAR","Paraguay","🇵🇾","D",1,1517],["AUS","Australia","🇦🇺","D",2,1585],["TUR","Turquía","🇹🇷","D",3,1550],
+ ["GER","Alemania","🇩🇪","E",0,1760],["CUW","Curazao","🇨🇼","E",1,1380],["CIV","Costa de Marfil","🇨🇮","E",2,1552],["ECU","Ecuador","🇪🇨","E",3,1558],
+ ["NED","Países Bajos","🇳🇱","F",0,1764],["JPN","Japón","🇯🇵","F",1,1681],["SWE","Suecia","🇸🇪","F",2,1518],["TUN","Túnez","🇹🇳","F",3,1480],
+ ["BEL","Bélgica","🇧🇪","G",0,1728],["EGY","Egipto","🇪🇬","G",1,1583],["IRN","Irán","🇮🇷","G",2,1611],["NZL","Nueva Zelanda","🇳🇿","G",3,1277],
+ ["ESP","España","🇪🇸","H",0,1864],["CPV","Cabo Verde","🇨🇻","H",1,1400],["KSA","Arabia Saudí","🇸🇦","H",2,1430],["URU","Uruguay","🇺🇾","H",3,1650],
+ ["FRA","Francia","🇫🇷","I",0,1894],["SEN","Senegal","🇸🇳","I",1,1638],["IRQ","Irak","🇮🇶","I",2,1390],["NOR","Noruega","🇳🇴","I",3,1606],
+ ["ARG","Argentina","🇦🇷","J",0,1902],["ALG","Argelia","🇩🇿","J",1,1559],["AUT","Austria","🇦🇹","J",2,1600],["JOR","Jordania","🇯🇴","J",3,1390],
+ ["POR","Portugal","🇵🇹","K",0,1755],["COD","RD Congo","🇨🇩","K",1,1487],["UZB","Uzbekistán","🇺🇿","K",2,1437],["COL","Colombia","🇨🇴","K",3,1713],
+ ["ENG","Inglaterra","🏴","L",0,1848],["CRO","Croacia","🇭🇷","L",1,1695],["GHA","Ghana","🇬🇭","L",2,1405],["PAN","Panamá","🇵🇦","L",3,1505]
+];
+const GROUPS="ABCDEFGHIJKL".split("");
+const T={}; TEAMS.forEach(t=>T[t[0]]={code:t[0],name:t[1],flag:t[2],group:t[3],pos:t[4],base:t[5]});
+function groupTeams(g){return TEAMS.filter(t=>t[3]===g).sort((a,b)=>a[4]-b[4]).map(t=>t[0])}
+
+/* ---------- fixtures: patrón FIFA por grupo [1,2,3,4] ---------- */
+/* J1: 0-1, 2-3 | J2: 0-2, 3-1 | J3: 3-0, 1-2  (índices de posición) */
+const MD_PATTERN=[ [[0,1],[2,3]], [[0,2],[3,1]], [[3,0],[1,2]] ];
+const DATES={ // fechas conocidas (jornada por grupo): clave grupo+md
+  default:["11–17 jun","17–22 jun","23–27 jun"]
+};
+const SPECIAL_DATE={"K-2-0":"23 jun","K-2-1":"24 jun","K-3-0":"27 jun"};
+const FIXTURES=[];
+GROUPS.forEach(g=>{
+  const ts=groupTeams(g);
+  MD_PATTERN.forEach((pair,md)=>{
+    pair.forEach((p,i)=>{
+      const id=`${g}-${md+1}-${i}`;
+      FIXTURES.push({id,group:g,md:md+1,home:ts[p[0]],away:ts[p[1]]});
+    });
+  });
+});
+
+/* resultados verificados precargados [home,away] */
+const SEED={
+ "A-2-0":[1,0],"A-2-1":[1,1],
+ "E-2-0":[2,1],"E-2-1":[1,1],
+ "F-1-0":[2,2],"F-2-0":[5,1],
+ "G-2-1":[1,3],
+ "H-2-1":[2,2],
+ "I-1-0":[3,1],"I-1-1":[1,4],
+ "J-1-0":[3,0],
+ "K-1-0":[1,1],
+ "L-1-0":[4,2]
+};
+
+/* ---------- estado ---------- */
+let STATE=Store.get(KEY)||{results:{},eloOverride:{}};
+if(!STATE.results||Object.keys(STATE.results).length===0){STATE.results=JSON.parse(JSON.stringify(SEED));}
+function save(){Store.set(KEY,STATE)}
+
+/* ---------- Elo actual: base + réplica de todos los resultados ---------- */
+let ELO={};
+function recomputeElo(){
+  ELO={}; TEAMS.forEach(t=>ELO[t[0]]= (STATE.eloOverride[t[0]]!=null?STATE.eloOverride[t[0]]:t[5]));
+  // replay en orden jornada->grupo para determinismo
+  const ids=Object.keys(STATE.results).sort();
+  ids.forEach(id=>{
+    const fx=FIXTURES.find(f=>f.id===id); if(!fx)return;
+    const r=STATE.results[id]; if(!r)return;
+    const [gh,ga]=r; const Ra=ELO[fx.home],Rb=ELO[fx.away];
+    const We=1/(Math.pow(10,(Rb-Ra)/400)+1);
+    let W = gh>ga?1:(gh<ga?0:0.5);
+    const gd=Math.abs(gh-ga); let G=1; if(gd===2)G=1.5; else if(gd>=3)G=(11+gd)/8;
+    const K=50;
+    const delta=K*G*(W-We);
+    ELO[fx.home]=Ra+delta; ELO[fx.away]=Rb-delta;
+  });
+}
+function elo(code){return ELO[code]}
+
+/* ---------- motor Poisson ---------- */
+function poissonPMF(lambda,k){let p=Math.exp(-lambda);for(let i=1;i<=k;i++)p*=lambda/i;return p}
+function pGE(mean,k){let c=0;for(let n=0;n<k;n++)c+=poissonPMF(mean,n);return Math.max(0,1-c)} // P(X>=k)
+function predict(aCode,bCode,homeAdv){
+  let Ra=elo(aCode), Rb=elo(bCode);
+  if(homeAdv)Ra+=60;
+  const dr=Ra-Rb;
+  const We=1/(Math.pow(10,-dr/400)+1);          // expectativa local
+  const G0=1.32, beta=0.85;                      // media de goles base por equipo
+  const ex=beta*dr/400;                          // ventaja según Elo
+  let lamA=Math.max(0.20,Math.min(5,G0*Math.exp(ex)));   // goles esperados local
+  let lamB=Math.max(0.20,Math.min(5,G0*Math.exp(-ex)));  // goles esperados visita
+  const N=10; const pa=[],pb=[]; let spa=0,spb=0;
+  for(let i=0;i<N;i++){const a=poissonPMF(lamA,i),b=poissonPMF(lamB,i);pa.push(a);pb.push(b);spa+=a;spb+=b;}
+  const mass=spa*spb;
+  let pH=0,pD=0,pA=0,o15=0,o25=0,o35=0,btts=0,hA2=0,best={p:-1,i:0,j:0};
+  const exact=[];
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+    const p=pa[i]*pb[j];
+    if(i>j)pH+=p; else if(i===j)pD+=p; else pA+=p;
+    if(i+j>=2)o15+=p;
+    if(i+j>=3)o25+=p;
+    if(i+j>=4)o35+=p;
+    if(i>=1&&j>=1)btts+=p;
+    if(i-j>=2)hA2+=p;                            // local gana por 2+ (hándicap -1.5)
+    if(p>best.p)best={p,i,j};
+    exact.push({i,j,p});
+  }
+  const nm=x=>x/mass;
+  pH=nm(pH);pD=nm(pD);pA=nm(pA);o15=nm(o15);o25=nm(o25);o35=nm(o35);btts=nm(btts);hA2=nm(hA2);
+  const aScore=1-pa[0]/spa, bScore=1-pb[0]/spb;
+  const csA=pb[0]/spb, csB=pa[0]/spa;            // portería a cero = el rival no marca
+  exact.forEach(e=>e.p=e.p/mass); exact.sort((x,y)=>y.p-x.p);
+  /* córners: dominio territorial, base 8.5 por partido (verif. Mundial 2026) */
+  const cTot=8.5+0.6*Math.abs(lamA-lamB);
+  const sA=Math.pow(lamA,0.85),sB=Math.pow(lamB,0.85);
+  const cornA=cTot*sA/(sA+sB),cornB=cTot-cornA;
+  /* tarjetas: más en partidos parejos; base ~4 amarillas/partido */
+  const even=1-2*Math.abs(We-0.5);
+  const kTot=3.2+2.0*even, tilt=0.10*(2*We-1);
+  const cardA=kTot*(0.5-tilt),cardB=kTot*(0.5+tilt);
+  const redMean=0.14+0.14*even;
+  return {Ra,Rb,lamA,lamB,We,pH,pD,pA,o15,o25,o35,btts,aScore,bScore,csA,csB,hA15:hA2,
+          best,exact:exact.slice(0,5),over:o25,
+          corners:{tot:cTot,a:cornA,b:cornB,o75:pGE(cTot,8),o85:pGE(cTot,9),o95:pGE(cTot,10),o105:pGE(cTot,11)},
+          cards:{tot:kTot,a:cardA,b:cardB,o35:pGE(kTot,4),o45:pGE(kTot,5),o55:pGE(kTot,6),red:1-Math.exp(-redMean)}};
+}
+const pct=x=>Math.round(x*100);
+
+/* ---------- render: tarjeta de predicción ---------- */
+function predCardHTML(aCode,bCode,homeAdv,opts){
+  opts=opts||{};
+  const A=T[aCode],B=T[bCode],p=predict(aCode,bCode,homeAdv);
+  const hW=pct(p.pH),dW=pct(p.pD),aW=pct(p.pA);
+  const chips=p.exact.map(e=>`<span class="chip"><b>${e.i}–${e.j}</b> ${pct(e.p)}%</span>`).join("");
+  const oid=opts.oddPrefix||'op';
+  return `
+  <div class="board">
+    <div class="board-top">
+      <div class="tname"><span class="tflag">${A.flag}</span><b>${A.name}</b><span class="elo">Elo ${Math.round(p.Ra)}${homeAdv?' +local':''}</span></div>
+      <div style="text-align:center">
+        <div class="scoreline"><span class="n">${p.best.i}</span><span class="x">–</span><span class="n">${p.best.j}</span></div>
+        <div class="score-cap">Marcador más probable</div>
+      </div>
+      <div class="tname"><span class="tflag">${B.flag}</span><b>${B.name}</b><span class="elo">Elo ${Math.round(p.Rb)}</span></div>
+    </div>
+
+    <div class="probbar">
+      <div class="seg-h" style="flex:${Math.max(hW,1)}">${hW>7?hW+'%':''}</div>
+      <div class="seg-d" style="flex:${Math.max(dW,1)}">${dW>7?dW+'%':''}</div>
+      <div class="seg-a" style="flex:${Math.max(aW,1)}">${aW>7?aW+'%':''}</div>
+    </div>
+    <div class="problabels"><span>Gana ${A.name} · ${hW}%</span><span>Empate · ${dW}%</span><span>Gana ${B.name} · ${aW}%</span></div>
+
+    <div class="mkt">
+      <div class="mcell"><div class="k">Goles esperados</div><div class="v">${p.lamA.toFixed(1)} – ${p.lamB.toFixed(1)}</div></div>
+      <div class="mcell"><div class="k">Más de 2.5</div><div class="v">${pct(p.over)}%</div></div>
+      <div class="mcell"><div class="k">Ambos marcan</div><div class="v">${pct(p.btts)}%</div></div>
+    </div>
+    <div class="chips"><span style="font-family:var(--mono);font-size:10px;color:var(--mut);align-self:center;text-transform:uppercase;letter-spacing:.1em">Marcadores probables:</span>${chips}</div>
+
+    ${marketsHTML(p,A,B)}
+
+    <div class="value-wrap">
+      <span class="eyebrow">Valor de apuesta — ingresa las cuotas de tu casa</span>
+      <div class="odds3">
+        <div class="o"><label class="fl">Cuota 1 (${A.code})</label><input type="number" step="0.01" min="1" id="${oid}H" placeholder="ej. 2.40"></div>
+        <div class="o"><label class="fl">Cuota X</label><input type="number" step="0.01" min="1" id="${oid}D" placeholder="ej. 3.20"></div>
+        <div class="o"><label class="fl">Cuota 2 (${B.code})</label><input type="number" step="0.01" min="1" id="${oid}A" placeholder="ej. 2.90"></div>
+      </div>
+      <div class="valgrid" id="${oid}OUT">
+        ${valBox('Local',p.pH)}${valBox('Empate',p.pD)}${valBox('Visita',p.pA)}
+      </div>
+      <p class="disclaim" style="margin-top:10px">Cuota justa = 1 ÷ probabilidad. Si la cuota de tu casa supera la justa, hay <span style="color:var(--verde)">valor</span>. Herramienta informativa, no garantiza resultados.</p>
+    </div>
+  </div>`;
+}
+function mRow(label,pick,prob){
+  if(prob==null) return `<tr><td class="mk">${label}</td><td class="pk">${pick}</td><td class="pr">—</td><td class="fo">—</td></tr>`;
+  const w=Math.max(4,Math.round(prob*54));
+  return `<tr><td class="mk">${label}</td><td class="pk">${pick}</td>`+
+    `<td class="pr"><span class="mbar" style="width:${w}px"></span>${pct(prob)}%</td>`+
+    `<td class="fo">${(1/prob).toFixed(2)}</td></tr>`;
+}
+function mGroup(title,rows){return `<div class="mgroup"><h4>${title}</h4><table class="mtbl">${rows.join("")}</table></div>`}
+function marketsHTML(p,A,B){
+  const resultado=mGroup('Resultado · 1X2 · hándicap',[
+    mRow('Gana '+A.name,'1',p.pH),mRow('Empate','X',p.pD),mRow('Gana '+B.name,'2',p.pA),
+    mRow('Doble — 1X','local o empate',p.pH+p.pD),
+    mRow('Doble — X2','empate o visita',p.pD+p.pA),
+    mRow('Doble — 12','sin empate',p.pH+p.pA),
+    mRow(A.name+' −1.5','gana por 2+',p.hA15),
+    mRow(B.name+' +1.5','no pierde por 2+',1-p.hA15)
+  ]);
+  const goles=mGroup('Goles',[
+    mRow('Más de 1.5','+1.5',p.o15),mRow('Menos de 1.5','−1.5',1-p.o15),
+    mRow('Más de 2.5','+2.5',p.o25),mRow('Menos de 2.5','−2.5',1-p.o25),
+    mRow('Más de 3.5','+3.5',p.o35),mRow('Menos de 3.5','−3.5',1-p.o35),
+    mRow('Ambos marcan — Sí','BTTS',p.btts),mRow('Ambos marcan — No','',1-p.btts),
+    mRow('Marca '+A.name,'',p.aScore),mRow('Marca '+B.name,'',p.bScore),
+    mRow('Cero del '+A.name,'visita no marca',p.csA),
+    mRow('Cero del '+B.name,'local no marca',p.csB)
+  ]);
+  const corn=mGroup('Córners · ~'+p.corners.tot.toFixed(1)+' esperados',[
+    mRow(A.name,p.corners.a.toFixed(1)+' córners',null),
+    mRow(B.name,p.corners.b.toFixed(1)+' córners',null),
+    mRow('Más de 7.5','+7.5',p.corners.o75),
+    mRow('Más de 8.5','+8.5',p.corners.o85),
+    mRow('Más de 9.5','+9.5',p.corners.o95),
+    mRow('Más de 10.5','+10.5',p.corners.o105)
+  ]);
+  const tarj=mGroup('Tarjetas amarillas · ~'+p.cards.tot.toFixed(1)+' esperadas',[
+    mRow(A.name,p.cards.a.toFixed(1)+' tarjetas',null),
+    mRow(B.name,p.cards.b.toFixed(1)+' tarjetas',null),
+    mRow('Más de 3.5','+3.5',p.cards.o35),
+    mRow('Más de 4.5','+4.5',p.cards.o45),
+    mRow('Más de 5.5','+5.5',p.cards.o55),
+    mRow('Al menos una roja','',p.cards.red)
+  ]);
+  return `<div class="markets">
+    <span class="eyebrow">Mercados — pronóstico y cuota justa (1 ÷ probabilidad)</span>
+    <div class="grid2">${resultado}${goles}</div>
+    <div class="grid2">${corn}${tarj}</div>
+    <p class="disclaim" style="margin-top:8px">Goles y resultado salen del modelo Poisson+Elo. Córners y tarjetas usan promedios reales del torneo ajustados por el cruce y son <b>más ruidosos</b>: tómalos como orientación. Si la cuota de tu casa supera la cuota justa, hay valor.</p>
+  </div>`;
+}
+function valBox(lab,prob,odd){
+  const fair=(1/prob);
+  let badge=`<div class="vbadge" style="background:var(--panel);color:var(--mut);border:1px solid var(--line)">Cuota justa ${fair.toFixed(2)}</div>`;
+  if(odd&&odd>1){
+    const ev=prob*odd-1;
+    badge = ev>0
+      ? `<div class="vbadge vpos">VALOR +${(ev*100).toFixed(0)}%</div>`
+      : `<div class="vbadge vneg">${(ev*100).toFixed(0)}%</div>`;
+  }
+  return `<div class="vbox"><div class="lab">${lab}</div><div class="fair">${pct(prob)}%</div>${badge}</div>`;
+}
+function wireOdds(prefix,aCode,bCode,homeAdv){
+  const p=predict(aCode,bCode,homeAdv);
+  const probs={H:p.pH,D:p.pD,A:p.pA}; const labs={H:'Local',D:'Empate',A:'Visita'};
+  function upd(){
+    const out=document.getElementById(prefix+'OUT'); if(!out)return;
+    out.innerHTML=['H','D','A'].map(k=>{
+      const v=parseFloat(document.getElementById(prefix+k).value);
+      return valBox(labs[k],probs[k],isNaN(v)?null:v);
+    }).join("");
+  }
+  ['H','D','A'].forEach(k=>{const el=document.getElementById(prefix+k);if(el)el.addEventListener('input',upd);});
+}
+
+/* ---------- TAB: Predicciones ---------- */
+function fillSelect(sel,val){
+  sel.innerHTML=GROUPS.map(g=>`<optgroup label="Grupo ${g}">`+
+    groupTeams(g).map(c=>`<option value="${c}" ${c===val?'selected':''}>${T[c].flag} ${T[c].name}</option>`).join("")+
+    `</optgroup>`).join("");
+}
+function renderPred(){
+  const a=document.getElementById('selA').value, b=document.getElementById('selB').value;
+  const ha=document.getElementById('homeAdv').checked;
+  document.getElementById('predCard').innerHTML=predCardHTML(a,b,ha,{oddPrefix:'pp'});
+  wireOdds('pp',a,b,ha);
+}
+function renderColKpi(){
+  const k=document.getElementById('colKpi');
+  const st=standings('K');
+  const col=st.find(r=>r.code==='COL');
+  const pPor=predict('COL','POR',false);
+  k.innerHTML=`
+   <div class="kpi"><div class="n">${col?col.pts:0}</div><div class="l">Puntos Colombia</div></div>
+   <div class="kpi"><div class="n">${col?(st.indexOf(col)+1)+'º':'-'}</div><div class="l">Posición Grupo K</div></div>
+   <div class="kpi"><div class="n">${pct(pPor.pH)}%</div><div class="l">Gana a Portugal</div></div>
+   <div class="kpi"><div class="n">${pPor.best.i}–${pPor.best.j}</div><div class="l">Marcador probable vs POR</div></div>`;
+}
+
+/* ---------- TAB: Calendario ---------- */
+function renderCal(){
+  const filter=document.getElementById('calFilter').value;
+  const list=document.getElementById('calList'); list.innerHTML="";
+  const groups = filter==='ALL'?GROUPS:[filter];
+  groups.forEach(g=>{
+    const fxs=FIXTURES.filter(f=>f.group===g);
+    let html=`<div class="gtitle"><span class="gl">${g}</span><h3>Grupo ${g}</h3></div>`;
+    fxs.forEach(f=>{
+      const A=T[f.home],B=T[f.away],r=STATE.results[f.id];
+      const seeded=SEED[f.id]!=null && r && SEED[f.id][0]===r[0] && SEED[f.id][1]===r[1];
+      const date=SPECIAL_DATE[f.id]||DATES.default[f.md-1];
+      const star=(f.id==='K-3-0');
+      let scoreCell, predCell='';
+      if(r){scoreCell=`<div class="sc">${r[0]}–${r[1]}</div>`;}
+      else{
+        const p=predict(f.home,f.away,false);
+        scoreCell=`<div class="sc pend">pendiente</div>`;
+        predCell=`<div class="pp">pred ${p.best.i}–${p.best.j}<br>${pct(Math.max(p.pH,p.pD,p.pA))}%</div>`;
+      }
+      html+=`<div class="fxt ${star?'star':''}" data-id="${f.id}">
+        <div class="md">J${f.md}<br>${date}</div>
+        <div class="side"><span class="fg">${A.flag}</span><span class="nm">${A.name}</span></div>
+        ${scoreCell}
+        <div class="side away"><span class="nm">${B.name}</span><span class="fg">${B.flag}</span></div>
+        ${predCell||`<div class="pp">${seeded?'<span class=tagseed>verif.</span>':''}</div>`}
+      </div>`;
+    });
+    list.insertAdjacentHTML('beforeend',html);
+  });
+  list.querySelectorAll('.fxt').forEach(el=>el.addEventListener('click',()=>openModal(el.dataset.id)));
+}
+
+/* ---------- TAB: Grupos ---------- */
+function standings(g){
+  const rows=groupTeams(g).map(c=>({code:c,pj:0,g:0,e:0,p:0,gf:0,gc:0,dg:0,pts:0}));
+  const idx={}; rows.forEach(r=>idx[r.code]=r);
+  FIXTURES.filter(f=>f.group===g).forEach(f=>{
+    const r=STATE.results[f.id]; if(!r)return;
+    const h=idx[f.home],a=idx[f.away],[gh,ga]=r;
+    h.pj++;a.pj++;h.gf+=gh;h.gc+=ga;a.gf+=ga;a.gc+=gh;
+    if(gh>ga){h.g++;a.p++;h.pts+=3;} else if(gh<ga){a.g++;h.p++;a.pts+=3;} else {h.e++;a.e++;h.pts++;a.pts++;}
+  });
+  rows.forEach(r=>r.dg=r.gf-r.gc);
+  rows.sort((x,y)=>y.pts-x.pts||y.dg-x.dg||y.gf-x.gf|| (x.code<y.code?-1:1));
+  return rows;
+}
+function renderGrp(){
+  const list=document.getElementById('grpList'); list.innerHTML="";
+  GROUPS.forEach(g=>{
+    const rows=standings(g);
+    let h=`<div class="gtbl"><div style="padding:10px 14px;border-bottom:1px solid var(--line)" class="gtitle" >
+      <span class="gl">${g}</span><h3>Grupo ${g}</h3></div><table>
+      <thead><tr><th style="text-align:left;padding-left:14px">Equipo</th><th>PJ</th><th>DG</th><th>GF</th><th>Pts</th></tr></thead><tbody>`;
+    rows.forEach((r,i)=>{
+      const cls=i<2?'qual':(i===2?'third':'');
+      h+=`<tr class="${cls}"><td class="team"><span class="pos">${i+1}</span>${T[r.code].flag} ${T[r.code].name}</td>
+        <td>${r.pj}</td><td>${r.dg>0?'+':''}${r.dg}</td><td>${r.gf}</td><td class="pts">${r.pts}</td></tr>`;
+    });
+    h+=`</tbody></table></div>`;
+    list.insertAdjacentHTML('beforeend',h);
+  });
+  renderThirds();
+}
+function renderThirds(){
+  const thirds=GROUPS.map(g=>{const r=standings(g)[2];return {...r,group:g}});
+  thirds.sort((x,y)=>y.pts-x.pts||y.dg-x.dg||y.gf-x.gf);
+  let h=`<table><thead><tr><th style="text-align:left;padding-left:14px">3º lugar</th><th>Grupo</th><th>PJ</th><th>DG</th><th>Pts</th></tr></thead><tbody>`;
+  thirds.forEach((r,i)=>{
+    const cls=i<8?'qual':'';
+    h+=`<tr class="${cls}"><td class="team"><span class="pos">${i+1}</span>${T[r.code].flag} ${T[r.code].name}</td>
+      <td>${r.group}</td><td>${r.pj}</td><td>${r.dg>0?'+':''}${r.dg}</td><td class="pts">${r.pts}</td></tr>`;
+  });
+  h+=`</tbody></table>`;
+  document.getElementById('thirdsTbl').innerHTML=h;
+}
+
+/* ---------- TAB: Equipos ---------- */
+function renderEq(){
+  const list=document.getElementById('eqList'); list.innerHTML="";
+  const sorted=[...TEAMS].sort((a,b)=>elo(b[0])-elo(a[0]));
+  sorted.forEach(t=>{
+    const c=t[0], cur=elo(c), base=(STATE.eloOverride[c]!=null?STATE.eloOverride[c]:t[5]);
+    const d=cur-base; const dtxt=Math.abs(d)<0.5?'—':(d>0?'+':'')+Math.round(d);
+    const dcol=d>0.5?'var(--verde)':(d<-0.5?'var(--rojo)':'var(--mut)');
+    list.insertAdjacentHTML('beforeend',`<div class="teamrow">
+      <span class="fg">${t[2]}</span><span class="nm">${t[1]}</span>
+      <span class="gpill">Grupo ${t[3]}</span>
+      <span class="delta" style="color:${dcol}">${dtxt}</span>
+      <input type="number" data-c="${c}" value="${Math.round(base)}">
+    </div>`);
+  });
+  list.querySelectorAll('input').forEach(inp=>inp.addEventListener('change',()=>{
+    const v=parseFloat(inp.value); const c=inp.dataset.c;
+    if(!isNaN(v)){STATE.eloOverride[c]=v; save(); recomputeElo(); refreshAll(); toast('Elo actualizado');}
+  }));
+}
+
+/* ---------- modal de marcador ---------- */
+let curId=null;
+function openModal(id){
+  curId=id; const f=FIXTURES.find(x=>x.id===id); const A=T[f.home],B=T[f.away];
+  document.getElementById('modalTitle').textContent=`${A.name} vs ${B.name}`;
+  document.getElementById('meFlagA').textContent=A.flag;
+  document.getElementById('meFlagB').textContent=B.flag;
+  const r=STATE.results[id];
+  document.getElementById('meA').value=r?r[0]:0;
+  document.getElementById('meB').value=r?r[1]:0;
+  const p=predict(f.home,f.away,false);
+  document.getElementById('modalBody').innerHTML=`<div style="text-align:center;color:var(--mut);font-size:13px">Jornada ${f.md} · Grupo ${f.group}</div>`;
+  document.getElementById('modalPred').innerHTML=`Predicción del modelo: <b>${p.best.i}–${p.best.j}</b> · ${A.name} ${pct(p.pH)}% / X ${pct(p.pD)}% / ${B.name} ${pct(p.pA)}%`;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');curId=null;}
+
+/* ---------- refrescar todo ---------- */
+function refreshAll(){
+  recomputeElo();
+  renderPred(); renderColKpi(); renderCal(); renderGrp(); renderEq();
+}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600);}
+
+/* ---------- init ---------- */
+function init(){
+  fillSelect(document.getElementById('selA'),'COL');
+  fillSelect(document.getElementById('selB'),'POR');
+  // filtro calendario
+  const cf=document.getElementById('calFilter');
+  cf.innerHTML=`<option value="ALL">Todos los grupos</option>`+GROUPS.map(g=>`<option value="${g}" ${g==='K'?'selected':''}>Grupo ${g}${g==='K'?' (Colombia)':''}</option>`).join("");
+  cf.value='K';
+
+  // tabs
+  document.getElementById('nav').addEventListener('click',e=>{
+    const b=e.target.closest('.tab'); if(!b)return;
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); document.getElementById(b.dataset.t).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+
+  document.getElementById('selA').addEventListener('change',renderPred);
+  document.getElementById('selB').addEventListener('change',renderPred);
+  document.getElementById('homeAdv').addEventListener('change',renderPred);
+  document.getElementById('swapBtn').addEventListener('click',()=>{
+    const a=document.getElementById('selA'),b=document.getElementById('selB');
+    const tmp=a.value;a.value=b.value;b.value=tmp;renderPred();
+  });
+  document.getElementById('calFilter').addEventListener('change',renderCal);
+  document.getElementById('resetBtn').addEventListener('click',()=>{
+    STATE.results=JSON.parse(JSON.stringify(SEED));save();refreshAll();toast('Resultados reiniciados');
+  });
+  document.getElementById('resetElo').addEventListener('click',()=>{
+    STATE.eloOverride={};save();recomputeElo();refreshAll();toast('Elo base restaurado');
+  });
+
+  // modal
+  document.getElementById('meSave').addEventListener('click',()=>{
+    if(!curId)return; const a=parseInt(document.getElementById('meA').value)||0,b=parseInt(document.getElementById('meB').value)||0;
+    STATE.results[curId]=[a,b];save();closeModal();refreshAll();toast('Marcador guardado');
+  });
+  document.getElementById('meClear').addEventListener('click',()=>{
+    if(!curId)return; delete STATE.results[curId];save();closeModal();refreshAll();toast('Marcador borrado');
+  });
+  document.getElementById('meCancel').addEventListener('click',closeModal);
+  document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+
+  recomputeElo(); refreshAll();
+}
+init();
+</script>
+</body>
+</html>
