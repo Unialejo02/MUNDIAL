@@ -1,8 +1,8 @@
 "use strict";
 /* ---------- almacenamiento (funciona offline; degrada en sandbox) ---------- */
 const Store={mem:{},get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return this.mem[k]??null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}}};
-const KEY='oraculo2026_v2';
-const STATE_VERSION = 2;
+const KEY='oraculo2026_v3';
+const STATE_VERSION = 3;
 const DATA_UPDATED_AT = '23 jun 2026';
 const RESULTS_UPDATED_AT = '22 jun 2026';
 
@@ -58,8 +58,10 @@ const SEED={
 };
 
 /* ---------- estado ---------- */
-let STATE=Store.get(KEY)||{results:{},eloOverride:{}};
+let STATE=Store.get(KEY)||{results:{},eloOverride:{},liveData:{},apiConfig:{provider:'api-football',apiKey:'',season:2026}};
 if(!STATE.results||Object.keys(STATE.results).length===0){STATE.results=JSON.parse(JSON.stringify(SEED));}
+if(!STATE.liveData) STATE.liveData={};
+if(!STATE.apiConfig) STATE.apiConfig={provider:'api-football',apiKey:'',season:2026};
 function save(){Store.set(KEY,STATE)}
 
 /* ---------- Elo actual: base + réplica de todos los resultados ---------- */
@@ -149,6 +151,65 @@ function predict(aCode,bCode,homeAdv){
 }
 const pct=x=>Math.round(x*100);
 
+
+function probabilityLabel(p){
+  const max=Math.max(p.pH,p.pD,p.pA);
+  if(max>=0.58) return 'alta';
+  if(max>=0.46) return 'media';
+  return 'baja';
+}
+function likelyOutcomeText(p,A,B){
+  const outcomes=[{label:`victoria de ${A.name}`,prob:p.pH},{label:'empate',prob:p.pD},{label:`victoria de ${B.name}`,prob:p.pA}].sort((x,y)=>y.prob-x.prob);
+  return outcomes[0];
+}
+function matchDataHTML(p,A,B,fixtureId){
+  const live=fixtureId && STATE.liveData ? STATE.liveData[fixtureId] : null;
+  const status=live?.status ? live.status : 'Sin datos en vivo';
+  const minute=live?.minute ? ` · ${live.minute}'` : '';
+  const shots=live?.shotsOnTarget ? `${live.shotsOnTarget.home ?? '—'}–${live.shotsOnTarget.away ?? '—'}` : '—';
+  const possession=live?.possession ? `${live.possession.home ?? '—'}%–${live.possession.away ?? '—'}%` : '—';
+  const corners=live?.corners ? `${live.corners.home ?? '—'}–${live.corners.away ?? '—'}` : `${p.corners.a.toFixed(1)}–${p.corners.b.toFixed(1)} esp.`;
+  const cards=live?.cards ? `${live.cards.home ?? '—'}–${live.cards.away ?? '—'}` : `${p.cards.a.toFixed(1)}–${p.cards.b.toFixed(1)} esp.`;
+  return `<div class="match-data">
+    <span class="eyebrow">Datos que alimentan la lectura</span>
+    <div class="data-grid">
+      <div class="data-pill"><span>Estado</span><b>${status}${minute}</b></div>
+      <div class="data-pill"><span>Elo</span><b>${Math.round(p.Ra)}–${Math.round(p.Rb)}</b></div>
+      <div class="data-pill"><span>xG estimado</span><b>${p.lamA.toFixed(1)}–${p.lamB.toFixed(1)}</b></div>
+      <div class="data-pill"><span>Tiros al arco</span><b>${shots}</b></div>
+      <div class="data-pill"><span>Posesión</span><b>${possession}</b></div>
+      <div class="data-pill"><span>Córners</span><b>${corners}</b></div>
+      <div class="data-pill"><span>Tarjetas</span><b>${cards}</b></div>
+      <div class="data-pill"><span>Confianza</span><b>${probabilityLabel(p)}</b></div>
+    </div>
+    <p class="disclaim" style="margin-top:8px">Cuando conectes una API, esta sección recibe marcador, estado, minuto y estadísticas reales del partido. Con esos datos el Oráculo refresca tablas, Elo y predicciones.</p>
+  </div>`;
+}
+function finalAdviceHTML(p,A,B){
+  const outcome=likelyOutcomeText(p,A,B);
+  const diff=Math.abs(p.pH-p.pA);
+  let risk='alto';
+  if(Math.max(p.pH,p.pD,p.pA)>=0.55) risk='medio';
+  if(Math.max(p.pH,p.pD,p.pA)>=0.64) risk='bajo';
+  let suggestion='Partido parejo: mejor esperar alineaciones confirmadas y datos en vivo antes de tomar una lectura fuerte.';
+  if(outcome.prob>=0.55){
+    suggestion=`El modelo inclina el partido hacia ${outcome.label}. La lectura es más sólida si las estadísticas en vivo confirman dominio en tiros al arco, posesión útil y córners.`;
+  }else if(p.btts>=0.56){
+    suggestion='La señal más clara no está en el ganador sino en goles: ambos equipos tienen buena probabilidad de marcar.';
+  }else if(p.o25>=0.56){
+    suggestion='La tendencia favorece un partido con varios goles, pero revisa alineaciones y ritmo antes de confiarte.';
+  }else if(diff<0.08){
+    suggestion='La diferencia entre equipos es pequeña; el empate y los mercados conservadores tienen más sentido que forzar ganador.';
+  }
+  return `<div class="oracle-note">
+    <span class="eyebrow">Nota final del Oráculo</span>
+    <h3>${A.name} vs ${B.name}: posible predicción ${p.best.i}–${p.best.j}</h3>
+    <p><b>Lectura:</b> ${outcome.label} con ${pct(outcome.prob)}% de probabilidad. Riesgo estimado: <b>${risk}</b>.</p>
+    <p><b>Sugerencia:</b> ${suggestion}</p>
+    <p class="disclaim">Esta nota resume el modelo Poisson + Elo y los datos disponibles. No garantiza resultados; úsala como apoyo de análisis, no como certeza.</p>
+  </div>`;
+}
+
 /* ---------- render: tarjeta de predicción ---------- */
 function predCardHTML(aCode,bCode,homeAdv,opts){
   opts=opts||{};
@@ -156,6 +217,7 @@ function predCardHTML(aCode,bCode,homeAdv,opts){
   const hW=pct(p.pH),dW=pct(p.pD),aW=pct(p.pA);
   const chips=p.exact.map(e=>`<span class="chip"><b>${e.i}–${e.j}</b> ${pct(e.p)}%</span>`).join("");
   const oid=opts.oddPrefix||'op';
+  const fixtureId=opts.fixtureId||null;
   return `
   <div class="board">
     <div class="board-top">
@@ -182,6 +244,10 @@ function predCardHTML(aCode,bCode,homeAdv,opts){
     <div class="chips"><span style="font-family:var(--mono);font-size:10px;color:var(--mut);align-self:center;text-transform:uppercase;letter-spacing:.1em">Marcadores probables:</span>${chips}</div>
 
     ${marketsHTML(p,A,B)}
+
+    ${matchDataHTML(p,A,B,fixtureId)}
+
+    ${finalAdviceHTML(p,A,B)}
 
     <div class="value-wrap">
       <span class="eyebrow">Valor de apuesta — ingresa las cuotas de tu casa</span>
@@ -421,6 +487,82 @@ function refreshAll(){
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600);}
 
 
+
+/* ---------- actualización automática vía API ---------- */
+const API_FOOTBALL_FIXTURE_IDS={
+  // Ejemplo: "K-3-0": 1234567
+  // Debes completar estos IDs con los fixture_id reales que entregue tu proveedor.
+};
+function saveApiConfig(){
+  const key=document.getElementById('apiKeyInput')?.value?.trim() || '';
+  const season=parseInt(document.getElementById('apiSeasonInput')?.value,10) || 2026;
+  STATE.apiConfig={provider:'api-football',apiKey:key,season};
+  save();
+  toast('Configuración guardada');
+}
+function renderApiConfig(){
+  const keyEl=document.getElementById('apiKeyInput');
+  const seasonEl=document.getElementById('apiSeasonInput');
+  if(keyEl) keyEl.value=STATE.apiConfig?.apiKey || '';
+  if(seasonEl) seasonEl.value=STATE.apiConfig?.season || 2026;
+}
+function applyLiveFixture(fixtureId, payload){
+  const fx=FIXTURES.find(f=>f.id===fixtureId);
+  if(!fx || !payload) return false;
+  const goals=payload.goals || {};
+  if(Number.isFinite(goals.home) && Number.isFinite(goals.away)){
+    STATE.results[fixtureId]=[goals.home,goals.away];
+  }
+  const stats=(payload.statistics||[]).reduce((acc,item)=>{
+    const teamCode=item.team?.code;
+    const isHome=teamCode===fx.home || item.team?.name===TEAMS_BY_CODE[fx.home].name;
+    const side=isHome?'home':'away';
+    (item.statistics||[]).forEach(st=>{
+      const type=String(st.type||'').toLowerCase();
+      const val=String(st.value ?? '').replace('%','');
+      if(type.includes('possession')) acc.possession[side]=Number(val);
+      if(type.includes('shots on goal')) acc.shotsOnTarget[side]=Number(val);
+      if(type.includes('corner')) acc.corners[side]=Number(val);
+      if(type.includes('yellow')) acc.cards[side]=(acc.cards[side]||0)+Number(val);
+    });
+    return acc;
+  },{possession:{},shotsOnTarget:{},corners:{},cards:{}});
+  STATE.liveData[fixtureId]={
+    status:payload.fixture?.status?.short || payload.fixture?.status?.long || 'Actualizado',
+    minute:payload.fixture?.status?.elapsed || null,
+    possession:stats.possession,
+    shotsOnTarget:stats.shotsOnTarget,
+    corners:stats.corners,
+    cards:stats.cards,
+    updatedAt:new Date().toISOString()
+  };
+  return true;
+}
+async function updateScoresFromApi(){
+  const config=STATE.apiConfig || {};
+  if(!config.apiKey){
+    toast('Falta API key');
+    alert('Para actualizar marcadores automáticamente debes pegar una API key de API-Football en la sección Acerca. En GitHub Pages la key queda visible; para producción es mejor usar un backend/proxy.');
+    return;
+  }
+  const mapped=Object.entries(API_FOOTBALL_FIXTURE_IDS);
+  if(mapped.length===0){
+    toast('Faltan fixture IDs');
+    alert('Ya dejé la función de actualización automática lista, pero falta completar el mapa API_FOOTBALL_FIXTURE_IDS con los IDs reales de cada partido de tu proveedor. Sin esos IDs la app no puede saber qué partido externo corresponde a cada partido interno.');
+    return;
+  }
+  let updated=0;
+  for(const [localId,externalId] of mapped){
+    const url=`https://v3.football.api-sports.io/fixtures?id=${externalId}`;
+    const res=await fetch(url,{headers:{'x-apisports-key':config.apiKey}});
+    if(!res.ok) continue;
+    const data=await res.json();
+    const fixture=data.response?.[0];
+    if(applyLiveFixture(localId,fixture)) updated++;
+  }
+  save(); refreshAll(); toast(`${updated} partidos actualizados`);
+}
+
 /* ---------- exportación ---------- */
 function downloadTextFile(filename, content, mimeType){
   const blob=new Blob([content],{type:mimeType});
@@ -473,6 +615,10 @@ function init(){
     const tmp=a.value;a.value=b.value;b.value=tmp;renderPred();
   });
   document.getElementById('calFilter').addEventListener('change',renderCal);
+  document.getElementById('updateApiBtn').addEventListener('click',updateScoresFromApi);
+  document.getElementById('updateApiBtnInfo').addEventListener('click',updateScoresFromApi);
+  document.getElementById('saveApiBtn').addEventListener('click',saveApiConfig);
+  renderApiConfig();
   document.getElementById('exportJsonBtn').addEventListener('click',exportStateJson);
   document.getElementById('exportCsvBtn').addEventListener('click',exportFixturesCsv);
   document.getElementById('resetBtn').addEventListener('click',()=>{

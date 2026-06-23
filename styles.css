@@ -161,3 +161,13 @@ a{color:var(--azul)}
 .score-edit{display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0}
 .score-edit input{width:74px;font-family:var(--disp);font-size:28px;text-align:center;font-weight:700}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+/* Smart summary / live data */
+.match-data,.oracle-note,.api-box{margin-top:18px;border:1px solid var(--line);border-radius:14px;padding:16px;background:linear-gradient(180deg,var(--panel),#0c1322)}
+.match-data{border-left:3px solid var(--azul)}
+.oracle-note{border-left:3px solid var(--amar);background:radial-gradient(500px 180px at 20% -20%,rgba(255,204,29,.10),transparent),linear-gradient(180deg,var(--panel),#0c1322)}
+.oracle-note h3,.api-box h3{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em;font-size:18px;margin:6px 0 8px}
+.oracle-note p{margin:8px 0}
+.data-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px;margin-top:10px}
+.data-pill{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+.data-pill span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.data-pill b{display:block;font-family:var(--disp);font-size:16px;margin-top:3px;color:var(--ink)}

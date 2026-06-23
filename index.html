@@ -71,6 +71,7 @@
     <div class="toolbar">
       <select id="calFilter" style="max-width:220px"></select>
       <span style="flex:1"></span>
+      <button class="btn amar sm" id="updateApiBtn">Actualizar marcadores</button>
       <button class="btn ghost sm" id="exportJsonBtn">Exportar JSON</button>
       <button class="btn ghost sm" id="exportCsvBtn">Exportar CSV</button>
       <button class="btn ghost sm" id="resetBtn">Reiniciar a verificados</button>
@@ -111,8 +112,27 @@
       <p><b>Valor de apuesta.</b> Comparo la probabilidad del modelo con la cuota de tu casa: <span class="mono">valor = prob × cuota − 1</span>. Si es positivo, el modelo dice que esa cuota paga más de lo que el riesgo justifica. También te muestro la <b>cuota justa</b> (1 / probabilidad) para comparar.</p>
       <p><b>Mercados cubiertos.</b> Resultado 1X2, doble oportunidad, hándicap ±1.5, líneas de goles (más/menos de 1.5, 2.5, 3.5), ambos marcan, equipo que marca, portería a cero, marcador exacto, córners (total, por equipo y líneas) y tarjetas (total, por equipo, líneas y probabilidad de roja). Cada mercado muestra la probabilidad del modelo y su cuota justa.</p>
       <p><b>Córners y tarjetas.</b> No salen del Elo como los goles. Los córners parten de un promedio real del torneo (<b>8.5 por partido</b> en el Mundial 2026) y se reparten según qué equipo domina territorialmente. Las tarjetas parten de ~4 amarillas por partido (media típica de Mundial) y suben en los partidos parejos, donde hay más tensión. Son mercados <b>más ruidosos</b> que los goles: úsalos como orientación, no como certeza.</p>
+      <div class="api-box">
+        <span class="eyebrow">Actualización automática</span>
+        <h3>Conectar API de fútbol</h3>
+        <p class="disclaim">Pega tu API key y completa en <b>app.js</b> los fixture IDs reales del proveedor. La app queda preparada para traer marcador, minuto, estado y estadísticas del partido.</p>
+        <div class="grid2">
+          <div>
+            <label class="fl">API key API-Football</label>
+            <input id="apiKeyInput" type="password" placeholder="Pega aquí tu API key">
+          </div>
+          <div>
+            <label class="fl">Temporada</label>
+            <input id="apiSeasonInput" type="number" min="2026" value="2026">
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap">
+          <button class="btn amar sm" id="saveApiBtn">Guardar API</button>
+          <button class="btn ghost sm" id="updateApiBtnInfo">Probar actualización</button>
+        </div>
+      </div>
       <div class="note">⚠️ Esto es una herramienta estadística e informativa, no una fórmula para ganar dinero. Ningún modelo le gana de forma fiable a las casas de apuestas: ellas cobran un margen y tienen más datos. Úsalo para entender el partido y como guía, nunca apuestes más de lo que puedas permitirte perder. Las predicciones no garantizan nada.</div>
-      <p class="disclaim"><b>Datos.</b> Ratings Elo verificados de worldfootballrankings.com; fecha de actualización: <span id="dataUpdatedAt"></span>. Las selecciones de menor ranking quedan marcadas como estimadas y editables. Resultados precargados verificados de fuentes deportivas hasta: <span id="resultsUpdatedAt"></span>. Grupos y jornadas según el sorteo oficial FIFA. Para refrescar datos a una fecha posterior, pídemelo en el chat y regenero la app.</p>
+      <p class="disclaim"><b>Datos.</b> Ratings Elo verificados de worldfootballrankings.com (23 jun 2026); selecciones de menor ranking estimadas y editables. Resultados precargados verificados de fuentes deportivas (FIFA, EFE, medios) hasta el 22 jun 2026. Grupos y jornadas según el sorteo oficial FIFA. Para refrescar datos a una fecha posterior, pídemelo en el chat y regenero la app.</p>
     </div>
   </section>
 
