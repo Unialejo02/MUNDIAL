@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oráculo Mundial 2026 — Modelo predictivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="head-in">
+    <div class="brand">
+      <div class="crest">O</div>
+      <div>
+        <h1>Oráculo · Mundial 2026</h1>
+        <small>Modelo Poisson + Elo</small>
+      </div>
+    </div>
+    <nav id="nav">
+      <button class="tab active" data-t="pred" aria-label="Ver predicciones">Predicciones</button>
+      <button class="tab" data-t="cal" aria-label="Ver calendario">Calendario</button>
+      <button class="tab" data-t="grp" aria-label="Ver grupos">Grupos</button>
+      <button class="tab" data-t="eq" aria-label="Ver equipos">Equipos</button>
+      <button class="tab" data-t="info" aria-label="Ver información del modelo">Acerca</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- PREDICCIONES -->
+  <section id="pred" class="active">
+    <span class="eyebrow">Simulador de cruces</span>
+    <h2 class="sec">Predicción de partido</h2>
+    <p class="sub">Elige dos selecciones (o usa un partido del calendario). El modelo calcula probabilidades 1·X·2, marcador más probable y valor frente a tus cuotas.</p>
+
+    <div class="panel">
+      <div class="grid2">
+        <div>
+          <label class="fl">Local</label>
+          <select id="selA"></select>
+        </div>
+        <div>
+          <label class="fl">Visitante</label>
+          <select id="selB"></select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px;flex-wrap:wrap;gap:16px">
+        <label class="switch"><input type="checkbox" id="homeAdv"> Ventaja de campo al local (+60 Elo)</label>
+        <button class="btn ghost sm" id="swapBtn">⇄ Invertir</button>
+      </div>
+    </div>
+
+    <div id="predCard" style="margin-top:18px"></div>
+
+    <div class="panel" style="margin-top:18px">
+      <span class="eyebrow">🇨🇴 Foco Colombia · Grupo K</span>
+      <div class="kgrid" id="colKpi"></div>
+      <p class="disclaim" style="margin-top:12px">Toca cualquier partido del Grupo K en <b>Calendario</b> para ver la predicción detallada. El gran duelo Colombia vs Portugal es la Jornada 3.</p>
+    </div>
+  </section>
+
+  <!-- CALENDARIO -->
+  <section id="cal">
+    <span class="eyebrow">104 partidos · fase de grupos</span>
+    <h2 class="sec">Calendario y resultados</h2>
+    <p class="sub">Resultados verificados ya cargados. Toca un partido para ingresar o editar el marcador: las tablas y los ratings se recalculan al instante.</p>
+    <div class="toolbar">
+      <select id="calFilter" style="max-width:220px"></select>
+      <span style="flex:1"></span>
+      <button class="btn ghost sm" id="exportJsonBtn">Exportar JSON</button>
+      <button class="btn ghost sm" id="exportCsvBtn">Exportar CSV</button>
+      <button class="btn ghost sm" id="resetBtn">Reiniciar a verificados</button>
+    </div>
+    <div id="calList"></div>
+  </section>
+
+  <!-- GRUPOS -->
+  <section id="grp">
+    <span class="eyebrow">Tablas en vivo</span>
+    <h2 class="sec">Posiciones por grupo</h2>
+    <p class="sub">Se calculan con los resultados cargados. Verde = clasifica directo (Top 2). Amarillo = mejor tercero (8 avanzan). Criterios: puntos, diferencia de gol, goles a favor.</p>
+    <div id="grpList"></div>
+    <h2 class="sec" style="margin-top:26px">Mejores terceros</h2>
+    <p class="sub">Los 8 mejores entre los 12 terceros lugares completan los dieciseisavos de final.</p>
+    <div class="gtbl" id="thirdsTbl"></div>
+  </section>
+
+  <!-- EQUIPOS -->
+  <section id="eq">
+    <span class="eyebrow">Fuerza de las selecciones</span>
+    <h2 class="sec">Ratings Elo</h2>
+    <p class="sub">Base verificada (worldfootballrankings.com, 23 jun 2026). El "Δ" muestra cuánto ha movido cada selección su Elo según los resultados del torneo. Puedes ajustar cualquier valor a mano.</p>
+    <div class="toolbar">
+      <button class="btn ghost sm" id="resetElo">Restaurar Elo base</button>
+      <span class="disclaim" style="flex:1">El motor usa el <b>Elo actual</b> (base + ajuste por resultados).</span>
+    </div>
+    <div id="eqList"></div>
+  </section>
+
+  <!-- INFO -->
+  <section id="info">
+    <span class="eyebrow">Cómo funciona</span>
+    <h2 class="sec">Acerca del modelo</h2>
+    <div class="panel">
+      <p style="margin-top:0"><b>Motor.</b> Para cada cruce convierto la diferencia de Elo en una expectativa de goles para cada equipo (supremacía) y aplico una distribución de <b>Poisson</b> (0 a 7 goles). De ahí salen las probabilidades de victoria local, empate y visita, el marcador más probable, los marcadores exactos más cargados, el "más/menos de 2.5" y "ambos marcan".</p>
+      <p><b>Actualización durante el torneo.</b> Cada vez que ingresas un resultado, recalculo el Elo de las dos selecciones con la fórmula Elo (importancia de Mundial + multiplicador por diferencia de goles). Los ratings evolucionan jornada a jornada, así que las predicciones se ajustan a la forma real del torneo. Todo queda guardado en tu navegador.</p>
+      <p><b>Valor de apuesta.</b> Comparo la probabilidad del modelo con la cuota de tu casa: <span class="mono">valor = prob × cuota − 1</span>. Si es positivo, el modelo dice que esa cuota paga más de lo que el riesgo justifica. También te muestro la <b>cuota justa</b> (1 / probabilidad) para comparar.</p>
+      <p><b>Mercados cubiertos.</b> Resultado 1X2, doble oportunidad, hándicap ±1.5, líneas de goles (más/menos de 1.5, 2.5, 3.5), ambos marcan, equipo que marca, portería a cero, marcador exacto, córners (total, por equipo y líneas) y tarjetas (total, por equipo, líneas y probabilidad de roja). Cada mercado muestra la probabilidad del modelo y su cuota justa.</p>
+      <p><b>Córners y tarjetas.</b> No salen del Elo como los goles. Los córners parten de un promedio real del torneo (<b>8.5 por partido</b> en el Mundial 2026) y se reparten según qué equipo domina territorialmente. Las tarjetas parten de ~4 amarillas por partido (media típica de Mundial) y suben en los partidos parejos, donde hay más tensión. Son mercados <b>más ruidosos</b> que los goles: úsalos como orientación, no como certeza.</p>
+      <div class="note">⚠️ Esto es una herramienta estadística e informativa, no una fórmula para ganar dinero. Ningún modelo le gana de forma fiable a las casas de apuestas: ellas cobran un margen y tienen más datos. Úsalo para entender el partido y como guía, nunca apuestes más de lo que puedas permitirte perder. Las predicciones no garantizan nada.</div>
+      <p class="disclaim"><b>Datos.</b> Ratings Elo verificados de worldfootballrankings.com; fecha de actualización: <span id="dataUpdatedAt"></span>. Las selecciones de menor ranking quedan marcadas como estimadas y editables. Resultados precargados verificados de fuentes deportivas hasta: <span id="resultsUpdatedAt"></span>. Grupos y jornadas según el sorteo oficial FIFA. Para refrescar datos a una fecha posterior, pídemelo en el chat y regenero la app.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle">Ingresar marcador</h3>
+    <div id="modalBody"></div>
+    <div class="score-edit">
+      <div style="text-align:center"><div id="meFlagA" style="font-size:30px"></div><input type="number" id="meA" min="0" max="20" value="0"></div>
+      <span class="vs-pill">–</span>
+      <div style="text-align:center"><div id="meFlagB" style="font-size:30px"></div><input type="number" id="meB" min="0" max="20" value="0"></div>
+    </div>
+    <div id="modalPred" class="disclaim" style="text-align:center;margin-bottom:14px"></div>
+    <div class="row" style="gap:8px">
+      <button class="btn amar" id="meSave" style="flex:1">Guardar</button>
+      <button class="btn ghost" id="meClear">Borrar</button>
+      <button class="btn ghost" id="meCancel">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
